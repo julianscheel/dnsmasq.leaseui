@@ -17,7 +17,7 @@ type Lease struct {
 }
 
 func parseLeases() []Lease {
-	var csvFile, err = os.Open("/var/lib/misc/dnsmasq.leases")
+	csvFile, err := os.Open("/var/lib/misc/dnsmasq.leases")
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -29,8 +29,8 @@ func parseLeases() []Lease {
 	reader.FieldsPerRecord = 5
 	reader.Comma = ' '
 
-	var csvData, cerr = reader.ReadAll()
-	if cerr != nil {
+	csvData, err := reader.ReadAll()
+	if err != nil {
 		fmt.Println(err)
 		return nil
 	}
@@ -41,6 +41,12 @@ func parseLeases() []Lease {
 	for _, entry := range csvData {
 		lease.Expiry, err = strconv.Atoi(entry[0])
 		lease.Mac = entry[1]
+		if ouiDb != nil {
+			macEntry, err := ouiDb.Query(lease.Mac)
+			if err == nil {
+				lease.MacVendor = macEntry.Manufacturer
+			}
+		}
 		lease.Ip = entry[2]
 		lease.Hostname = entry[3]
 		lease.ClientId = entry[4]
