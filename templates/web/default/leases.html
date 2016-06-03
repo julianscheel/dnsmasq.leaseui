@@ -1,0 +1,72 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="css/datatables.min.css"/>
+
+		<script type="text/javascript" src="js/datatables.min.js"></script>
+		<script type="text/javascript" src="js/moment.min.js"></script>
+
+		<title>{{ .Title }}</title>
+	</head>
+
+	<body>
+		<table id="leases" class="display" cellspacing="0"
+				     width="100%">
+			<thead>
+				<tr>
+					<th>Expiry date</th>
+					<th>MAC Address</th>
+					<th>IP Address</th>
+					<th>Hostname</th>
+					<th>Client ID</th>
+				</tr>
+			</thead>
+			<tfoot>
+				<tr>
+					<th>Expiry date</th>
+					<th>MAC Address</th>
+					<th>IP Address</th>
+					<th>Hostname</th>
+					<th>Client ID</th>
+				</tr>
+			</tfoot>
+		</table>
+	</body>
+
+
+	<script>
+		jQuery.fn.dataTable.render.moment = function (to) {
+			return function (d, type, row) {
+				var locale = window.navigator.userLanguage ||
+					window.navigator.language;
+				moment.locale(locale);
+				var m = moment.unix(d);
+
+
+				// Order and type get a number value from Moment, everything else
+				// sees the rendered value
+				return m.format( type === 'sort' || type === 'type' ? 'x' : to );
+			};
+		};
+	</script>
+	<script>
+		$(document).ready(function() {
+			$('#leases').DataTable( {
+				"paging": false,
+				"ajax": '/leases',
+				"columns": [
+					{ "data": "Expiry" },
+					{ "data": "Mac" },
+					{ "data": "Ip" },
+					{ "data": "Hostname" },
+					{ "data": "ClientId" },
+				],
+				"columnDefs": [ {
+					"targets": 0,
+					"render":
+						$.fn.dataTable.render.moment("LLL")
+				} ],
+				"order": [[ 0, "desc" ]]
+			} );
+		} );
+	</script>
+</html>
