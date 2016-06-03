@@ -1,6 +1,8 @@
 <html>
 	<head>
 		<link rel="stylesheet" type="text/css" href="css/datatables.min.css"/>
+		<link rel="stylesheet" type="text/css" href="css/leases.css"/>
+		<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
 
 		<script type="text/javascript" src="js/datatables.min.js"></script>
 		<script type="text/javascript" src="js/moment.min.js"></script>
@@ -9,27 +11,22 @@
 	</head>
 
 	<body>
-		<table id="leases" class="display" cellspacing="0"
-				     width="100%">
-			<thead>
-				<tr>
-					<th>Expiry date</th>
-					<th>MAC Address</th>
-					<th>IP Address</th>
-					<th>Hostname</th>
-					<th>Client ID</th>
-				</tr>
-			</thead>
-			<tfoot>
-				<tr>
-					<th>Expiry date</th>
-					<th>MAC Address</th>
-					<th>IP Address</th>
-					<th>Hostname</th>
-					<th>Client ID</th>
-				</tr>
-			</tfoot>
-		</table>
+
+		<div class="main">
+			<h1>DHCP Leases</h1>
+			<table id="leases" class="display" cellspacing="0"
+					     width="100%">
+				<thead>
+					<tr>
+						<th>Expiry date</th>
+						<th>MAC Address</th>
+						<th>IP Address</th>
+						<th>Hostname</th>
+						<th>Client ID</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
 	</body>
 
 
@@ -51,7 +48,6 @@
 	<script>
 		$(document).ready(function() {
 			$('#leases').DataTable( {
-				"paging": false,
 				"ajax": '/leases',
 				"columns": [
 					{ "data": "Expiry" },
@@ -65,7 +61,11 @@
 					"render":
 						$.fn.dataTable.render.moment("LLL")
 				} ],
-				"order": [[ 0, "desc" ]]
+				"order": [[ 0, "desc" ]],
+				"scrollY": Math.max(200, $(window).height() - 300),
+				"scroller": {
+					loadingIndicator: true,
+				},
 			} );
 		} );
 	</script>
