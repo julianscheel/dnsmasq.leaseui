@@ -49,7 +49,7 @@
 	</script>
 	<script>
 		$(document).ready(function() {
-			$('#leases').DataTable( {
+			var table = $('#leases').DataTable( {
 				"ajax": '/leases',
 				"columns": [
 					{ "data": "Expiry" },
@@ -70,6 +70,7 @@
 					loadingIndicator: true,
 				},
 			} );
+			setInterval(function() { table.ajax.reload(); }, 10000);
 		} );
 	</script>
 </html>
