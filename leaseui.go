@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"github.com/kataras/iris"
+	"github.com/kataras/iris/context"
 	"github.com/klauspost/oui"
 	"github.com/jasonlvhit/gocron"
 )
@@ -72,7 +73,6 @@ func updateOuiDb(db oui.DynamicDB) {
 }
 
 func main() {
-	iris.Config().Render.Template.Directory = "./templates/web/default"
 	db, err := oui.OpenFile("oui.txt")
 	if err != nil {
 		/* No local cache exists, create empty database */
@@ -93,18 +93,22 @@ func main() {
 	fmt.Println(time)
 	gocron.Start()
 
-	iris.Get("/leases", func(c *iris.Context) {
-		c.JSON(200, iris.Map{ "data": parseLeases(db) } )
+	app := iris.New()
+	app.RegisterView(iris.HTML("./templates/web/default", ".html"))
+	app.Get("/leases", func(ctx context.Context) {
+		ctx.JSON(map[string]interface{}{ "data": parseLeases(db) } )
 	})
-	iris.Static("/css", "./static/css", 1)
-	iris.Static("/js", "./static/js", 1)
+	app.StaticWeb("/css", "./static/css")
+	app.StaticWeb("/js", "./static/js")
 
-	iris.Get("/", func(ctx *iris.Context) {
-		err := ctx.Render("leases.html", page{Title: "DHCP Leases"})
+	app.Get("/", func(ctx context.Context) {
+		ctx.ViewData("Title", "DHCP Leases")
+		ctx.View("leases.html")
+
 		if err != nil {
 			println(err.Error())
 		}
 	})
 
-	iris.Listen(":8080")
+	app.Run(iris.Addr(":8080"))
 }
