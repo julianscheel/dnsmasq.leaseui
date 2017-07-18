@@ -1,66 +1,17 @@
 package main
 
 import (
-	"encoding/csv"
 	"io/ioutil"
 	"bytes"
+	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"github.com/klauspost/oui"
 	"github.com/jasonlvhit/gocron"
+	"./leaseparsers"
 )
-
-type Lease struct {
-	Expiry int
-	Mac string
-	MacVendor string
-	Ip string
-	Hostname string
-	ClientId string
-}
-
-func parseLeases(ouiDb oui.DynamicDB) []Lease {
-	csvFile, err := os.Open("/var/lib/misc/dnsmasq.leases")
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	defer csvFile.Close()
-
-	reader := csv.NewReader(csvFile)
-	reader.FieldsPerRecord = 5
-	reader.Comma = ' '
-
-	csvData, err := reader.ReadAll()
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-
-	var lease Lease
-	var leases []Lease
-
-	for _, entry := range csvData {
-		lease.Expiry, err = strconv.Atoi(entry[0])
-		lease.Mac = entry[1]
-		if ouiDb != nil {
-			macEntry, err := ouiDb.Query(lease.Mac)
-			if err == nil {
-				lease.MacVendor = macEntry.Manufacturer
-			}
-		}
-		lease.Ip = entry[2]
-		lease.Hostname = entry[3]
-		lease.ClientId = entry[4]
-
-		leases = append(leases, lease)
-	}
-
-	return leases
-}
 
 type page struct {
 	Title string
@@ -96,8 +47,7 @@ func main() {
 	app := iris.New()
 	app.RegisterView(iris.HTML("./templates/web/default", ".html"))
 	app.Get("/leases", func(ctx context.Context) {
-		ctx.JSON(map[string]interface{}{ "data": parseLeases(db) } )
-	})
+		ctx.JSON(map[string]interface{}{ "data": leaseparsers.ParseDnsmasqLeases(db) } )
 	app.StaticWeb("/css", "./static/css")
 	app.StaticWeb("/js", "./static/js")
 
