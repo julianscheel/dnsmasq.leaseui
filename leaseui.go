@@ -24,6 +24,13 @@ func updateOuiDb(db oui.DynamicDB) {
 }
 
 func main() {
+	backend := flag.String("backend", "dnsmasq", "Backend to use: dnsmasq or bind")
+	flag.Parse()
+	if *backend != "dnsmasq" && *backend != "bind" {
+		fmt.Println("Invalid backend specified")
+		return
+	}
+
 	db, err := oui.OpenFile("oui.txt")
 	if err != nil {
 		/* No local cache exists, create empty database */
@@ -46,8 +53,15 @@ func main() {
 
 	app := iris.New()
 	app.RegisterView(iris.HTML("./templates/web/default", ".html"))
-	app.Get("/leases", func(ctx context.Context) {
-		ctx.JSON(map[string]interface{}{ "data": leaseparsers.ParseDnsmasqLeases(db) } )
+	if *backend == "dnsmasq" {
+		app.Get("/leases", func(ctx context.Context) {
+			ctx.JSON(map[string]interface{}{ "data": leaseparsers.ParseDnsmasqLeases(db) } )
+		})
+	} else {
+		app.Get("/leases", func(ctx context.Context) {
+			ctx.JSON(map[string]interface{}{ "data": leaseparsers.ParseDhcpdLeases(db) } )
+		})
+	}
 	app.StaticWeb("/css", "./static/css")
 	app.StaticWeb("/js", "./static/js")
 
