@@ -39,6 +39,7 @@ func ParseDhcpdLeases(ouiDb oui.DynamicDB) []Lease {
 		action entry_complete {
 			entry.MacVendor = GetVendorByMac(ouiDb, entry.Mac)
 			leases = append(leases, entry)
+			entry = Lease{}
 		}
 
 		crlf = '\r'? '\n';
